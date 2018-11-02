@@ -5,31 +5,6 @@ import matplotlib.pyplot as plt
 import os
 
 
-#from binance.client import Client
-#import datetime
-#from influxdb import InfluxDBClient
-#import zulu
-#import copy
-
-#import datetime
-#from pytz import timezone
-
-
-#from binance_influxdb import binanceInfluxdb
-#from crypto_data_pipeline import tensorflow_influxdb
-#from crypto_data_pipeline import data_handling
-'''
-global_step = tf.Variable(0, trainable=False)
-starter_learning_rate = 0.1
-learning_rate = tf.train.exponential_decay(starter_learning_rate, global_step,
-                                           100000, 0.96, staircase=True)
-# Passing global_step to minimize() will increment it at each step.
-learning_step = (
-    tf.train.GradientDescentOptimizer(learning_rate)
-    .minimize(...my loss..., global_step=global_step)
-)
-
-'''
 def print_each_every(i,every, message):
     if i % every == 0:
         print(message)
@@ -67,8 +42,6 @@ class agent_episodic_continuous_action():
             else:
                 self.is_action_discrete = True
                 
-            
-
         self.gamma = gamma
         self.I = 1
         
@@ -90,13 +63,11 @@ class agent_episodic_continuous_action():
         
         self.size_of_data = 2*s_size+5
         
-        #data: [a, I,gamma,s0,s1,r,d] -->[a_size,1,1,s_size,s_size,1,1] --> a_size+1+1+2*s_size+1+1--> a_size+2*s+size+4 
         self.memories_holder = np.zeros([self.amount_of_data_to_memorize,self.size_of_data],dtype=np.float32) #limited discrete the a_size is 1
         
         self.state_in = tf.placeholder(shape=[None,s_size],dtype=tf.float32,name="input")
         self.state_in_future = tf.placeholder(shape=[None,s_size],dtype=tf.float32,name="input_future")
         self.reward_placeholder = tf.placeholder(shape=[None],dtype=tf.float32,name="reward")
-  #      self.delta_placeholder = tf.placeholder(shape=[None],dtype=tf.float32,name="delta")
         self.I_placeholder = tf.placeholder(shape=[None],dtype=tf.float32,name="ii")
         
         self.d_placeholder = tf.placeholder(shape=[None],dtype=tf.bool,name="dd")
@@ -116,9 +87,7 @@ class agent_episodic_continuous_action():
             
         self.memories_holder = np.zeros([self.amount_of_data_to_memorize,self.size_of_data])    
         self.set_data_indexes()
-        
- #       self.batch_size_placeholder = tf.placeholder(shape=(),dtype=tf.float32,name="batchsize")
-   
+
     def save_model(self,path,sess):
         self.saver.save(sess, path)
 
@@ -137,34 +106,34 @@ class agent_episodic_continuous_action():
                          
         n_hidden_1 = hidd_layer[0]
         num_hidden_layers = len(hidd_layer)        
-        self.weights_actor['h_{0}'.format(0)] = tf.Variable(tf.random_normal([num_input, n_hidden_1],mean=mean,stddev=stddev,dtype=tf.float32,seed=0),name='actor')
-        self.biases_actor['b_{0}'.format(0)] = tf.Variable(tf.random_normal([n_hidden_1],mean=mean,stddev=stddev,dtype=tf.float32,seed=0),name='actor') 
+        self.weights_actor['h_{0}'.format(0)] = tf.Variable(tf.random_normal([num_input, n_hidden_1],mean=mean,stddev=stddev,dtype=tf.float32),name='actor')
+        self.biases_actor['b_{0}'.format(0)] = tf.Variable(tf.random_normal([n_hidden_1],mean=mean,stddev=stddev,dtype=tf.float32),name='actor') 
         for i in range(num_hidden_layers):
             if i < num_hidden_layers-1:
                 num_input = n_hidden_1
                 n_hidden_1 = hidd_layer[i+1]
-                self.weights_actor['h_{0}'.format(i+1)] = tf.Variable(tf.random_normal([num_input, n_hidden_1],mean=mean,stddev=stddev,dtype=tf.float32,seed=0),name='actor')
-                self.biases_actor['b_{0}'.format(i+1)] = tf.Variable(tf.random_normal([n_hidden_1],mean=mean,stddev=stddev,dtype=tf.float32,seed=0),name='actor')
+                self.weights_actor['h_{0}'.format(i+1)] = tf.Variable(tf.random_normal([num_input, n_hidden_1],mean=mean,stddev=stddev,dtype=tf.float32),name='actor')
+                self.biases_actor['b_{0}'.format(i+1)] = tf.Variable(tf.random_normal([n_hidden_1],mean=mean,stddev=stddev,dtype=tf.float32),name='actor')
             else:
-                self.weights_actor['h_{0}'.format("out")] = tf.Variable(tf.random_normal([n_hidden_1, num_output],mean=mean,stddev=stddev,dtype=tf.float32,seed=0),name='actor')  
-                self.biases_actor['b_{0}'.format("out")] = tf.Variable(tf.random_normal([num_output],mean=mean,stddev=stddev,dtype=tf.float32,seed=0),name='actor')    
+                self.weights_actor['h_{0}'.format("out")] = tf.Variable(tf.random_normal([n_hidden_1, num_output],mean=mean,stddev=stddev,dtype=tf.float32),name='actor')  
+                self.biases_actor['b_{0}'.format("out")] = tf.Variable(tf.random_normal([num_output],mean=mean,stddev=stddev,dtype=tf.float32),name='actor')    
 
     def weights_init_critic(self,hidd_layer,mean,stddev):   
         num_input = self.s_size
         num_output = 1
         n_hidden_1 = hidd_layer[0]
         num_hidden_layers = len(hidd_layer)        
-        self.weights_critic['h_{0}'.format(0)] = tf.Variable(tf.random_normal([num_input, n_hidden_1],mean=mean,stddev=stddev,dtype=tf.float32,seed=0),name='critic')
-        self.biases_critic['b_{0}'.format(0)] = tf.Variable(tf.random_normal([n_hidden_1],mean=mean,stddev=stddev,dtype=tf.float32,seed=0),name='critic') 
+        self.weights_critic['h_{0}'.format(0)] = tf.Variable(tf.random_normal([num_input, n_hidden_1],mean=mean,stddev=stddev,dtype=tf.float32),name='critic')
+        self.biases_critic['b_{0}'.format(0)] = tf.Variable(tf.random_normal([n_hidden_1],mean=mean,stddev=stddev,dtype=tf.float32),name='critic') 
         for i in range(num_hidden_layers):
             if i < num_hidden_layers-1:
                 num_input = n_hidden_1
                 n_hidden_1 = hidd_layer[i+1]
-                self.weights_critic['h_{0}'.format(i+1)] = tf.Variable(tf.random_normal([num_input, n_hidden_1],mean=mean,stddev=stddev,dtype=tf.float32,seed=0),name='critic')
-                self.biases_critic['b_{0}'.format(i+1)] = tf.Variable(tf.random_normal([n_hidden_1],mean=mean,stddev=stddev,dtype=tf.float32,seed=0),name='critic')
+                self.weights_critic['h_{0}'.format(i+1)] = tf.Variable(tf.random_normal([num_input, n_hidden_1],mean=mean,stddev=stddev,dtype=tf.float32),name='critic')
+                self.biases_critic['b_{0}'.format(i+1)] = tf.Variable(tf.random_normal([n_hidden_1],mean=mean,stddev=stddev,dtype=tf.float32),name='critic')
             else:
-                self.weights_critic['h_{0}'.format("out")] = tf.Variable(tf.random_normal([n_hidden_1, num_output],mean=mean,stddev=stddev,dtype=tf.float32,seed=0),name='critic')  
-                self.biases_critic['b_{0}'.format("out")] = tf.Variable(tf.random_normal([num_output],mean=mean,stddev=stddev,dtype=tf.float32,seed=0),name='critic')    
+                self.weights_critic['h_{0}'.format("out")] = tf.Variable(tf.random_normal([n_hidden_1, num_output],mean=mean,stddev=stddev,dtype=tf.float32),name='critic')  
+                self.biases_critic['b_{0}'.format("out")] = tf.Variable(tf.random_normal([num_output],mean=mean,stddev=stddev,dtype=tf.float32),name='critic')    
 
     def weights_init_critic_copy_1(self,hidd_layer,mean,stddev):   
         num_input = self.s_size
@@ -271,8 +240,6 @@ class agent_episodic_continuous_action():
                 
         else:
             print("please create actor brain first")
-
-
      
     def create_actor_brain(self,hidd_layer,hidd_act_fn,output_act_fn,mean,stddev):        
         self.is_actor_brain_present =  True
@@ -304,16 +271,9 @@ class agent_episodic_continuous_action():
         
         if self.is_action_continous:
             self.output_actor_mean = tf.nn.softmax(layer_out[:,:self.a_size]) #choose wether is one action or the other thats why softmax, cannot be both
-            
-         #   self.output_actor_mean_raw = tf.nn.sigmoid(layer_out)
-            
-            self.output_actor_std = tf.nn.sigmoid(layer_out[:,self.a_size:])/10.0
-            
-            
-            
+            self.output_actor_std = tf.nn.sigmoid(layer_out[:,self.a_size:])/10.0       
             self.actor_tvar_num = (num_hidden_layers+1)*2
-            
-            
+                       
         elif self.is_action_discrete:
             self.action_dist=layer_out
             self.actor_tvar_num = (num_hidden_layers+1)*2
@@ -352,11 +312,6 @@ class agent_episodic_continuous_action():
             print("please create actor brain first")
         self.create_critic_brain_copy_1(hidd_layer,hidd_act_fn,output_act_fn,mean,stddev)
         self.create_critic_brain_copy_2_future(hidd_layer,hidd_act_fn,output_act_fn,mean,stddev)
-
-
-####################################################################################################################################################
-#tf.reshape(self.action_placeholder, [-1]) 
-     
 
     def calculate_delta(self):    
         self.new_delta = tf.add(self.reward_placeholder,tf.add(tf.cast(tf.math.logical_not(self.d_placeholder),tf.float32)*self.gamma_placeholder*self.output_critic_copy_2, -self.output_critic_copy_1))
@@ -453,9 +408,6 @@ class agent_episodic_continuous_action():
         return self.memories_holder
 
     def set_critic_learning_rate_decay(self,optimizer="GRAD",type_of_decay="exponential",learning_rate = 0.001,decay_steps = 5000, decay_rate = 0.5, end_learning_rate = 0.000001):
-    
-        
- 
         
         if type_of_decay == "exponential":
             self.learning_rate_critic= learning_rate
@@ -471,8 +423,6 @@ class agent_episodic_continuous_action():
                                                                name=None
                                                                         )        
             
-            
-
         elif type_of_decay == "polinomial":
             
             self.global_step_critic = tf.Variable(0, trainable=False)
@@ -500,9 +450,6 @@ class agent_episodic_continuous_action():
         
         
     def set_actor_learning_rate_decay(self,optimizer="GRAD",type_of_decay="exponential",learning_rate = 0.001,decay_steps = 5000, decay_rate = 0.5, end_learning_rate = 0.000001):
-
-        
- 
         
         if type_of_decay == "exponential":
             self.learning_rate_actor= learning_rate
@@ -518,8 +465,6 @@ class agent_episodic_continuous_action():
                                                                name=None
                                                                         )        
             
-            
-
         elif type_of_decay == "polinomial":
             
             self.global_step_actor = tf.Variable(0, trainable=False)
@@ -574,13 +519,6 @@ class agent_episodic_continuous_action():
         
         self.init = tf.global_variables_initializer()
   
-    
-####################################################################################################################################################    
-    
-
-    
-    
-    
     def normal_dist_prob(self): 
         
         if self.is_action_continous:
@@ -589,16 +527,11 @@ class agent_episodic_continuous_action():
             self.pdf = tf.exp(-0.5*y)/Z
             self.responsible_outputs =  self.pdf
         elif self.is_action_discrete:
-           # self.pdf = self.action_dist[0][self.action_placeholder[0][0]]
             self.pdf = self.action_dist
-           # self.pdf_selected =  self.action_dist[0][self.action_placeholder[0][0]]  
-         #   self.indexes = tf.range(0, tf.shape(self.action_dist)[0]) * tf.shape(self.action_dist)[1] + self.action_placeholder
             self.indexes = tf.range(0, tf.shape(self.action_dist)[0]) * tf.shape(self.action_dist)[1] + self.action_placeholder        
-            self.responsible_outputs = tf.gather(tf.reshape(self.action_dist, [-1]), self.indexes)
-   #         self.responsible_outputs = tf.expand_dims(self.responsible_outputs, 1)     
+            self.responsible_outputs = tf.gather(tf.reshape(self.action_dist, [-1]), self.indexes)    
 
     def sample_action(self,sess,state): #CHECK
-        #State should have shape [1,4] only one sample each time.
         if self.is_action_continous:
             try:
                 tvars,mean,cov= sess.run([self.tvars,self.output_actor_mean,self.output_actor_std],feed_dict={self.state_in:state})
@@ -613,22 +546,16 @@ class agent_episodic_continuous_action():
             
             self.action_dist_sample = sess.run([self.action_dist],feed_dict={self.state_in:state})
             if (np.nan in self.action_dist_sample[0][0]) or (None in self.action_dist_sample[0][0]):
-                print(self.action_dist_sample)
-            #print(self.action_dist_sample)
-            #this has to be parameterized somehow
-            
+                print(self.action_dist_sample)           
             sample_holder = np.zeros([self.action_dist_sample[0].shape[0],1])
             actions_pool = list(range(self.a_size))
             
             for i in range(self.action_dist_sample[0].shape[0]):
-                sample_holder[i] = np.random.choice(actions_pool,p=self.action_dist_sample[0][i,:])
-        
-        
+                sample_holder[i] = np.random.choice(actions_pool,p=self.action_dist_sample[0][i,:])      
         return sample_holder
 
- 
-
-
+###################################END OF CLASS DECLARATION ######################################################################
+##################################################################################################################################        
 
 ##### ENVIRONMENT CREATION #########  
     
@@ -640,15 +567,6 @@ env.seed(0)
 #lower_action_limit = env.action_space.low
 uper_action_limit = np.array([10,10])
 lower_action_limit = -np.array([10,10])
-
-
-
-
-
-#we may seed to debbug
-seed = 0
-#tf.set_random_seed(seed)
-np.random.seed(seed)
 
 #------------loops parameters------------------------------
 num_mem = 300 #amount of samples collected before training
@@ -675,7 +593,6 @@ agent.set_critic_learning_rate_decay(optimizer="GRAD",type_of_decay="exponential
 
 agent.create_new_graph_connections()
 #----------------------------------------------------------
-#TODO TRY THE INITIALIZER, IS NOT THE SAME AS THE STANDARD DEV
 
 #--------------Counters------------------------------------
 plot_count=0
@@ -684,55 +601,10 @@ count_avg = 0
 avg_counter = 0
 #----------------------------------------------------------
 
-
-
-##TESTING PDF 
-#with tf.Session() as sess:
-#    sess.run(agent.init)
-##    pdfs,means,stds=sess.run([agent.responsible_outputs,agent.output_actor_mean,agent.output_actor_std],feed_dict={agent.action_placeholder:[[1.0,0],[0,1.0],[0.5,0]],agent.state_in:[[0.5,0.5,0.5,0.5],[1,1.0,1,1],[0,0,0,0.0]]})
-#
-#    print(sess.run([agent.output_actor_mean,agent.output_actor_std],feed_dict={agent.state_in:[[1,1.0,1,1]]}))
-#    sample_holder = 0
-#    for i in range(1000):
-#        avect = agent.sample_action(sess,[[1,1,1,1.0]])
-#        sample_holder = sample_holder + avect
-#        
-#    print(sample_holder/1000.0)    
-
-#from scipy.stats import multivariate_normal
-#x = np.linspace(0, 5, 10, endpoint=False)
-#
-#covs = np.diag([0.04695055, 0.05464467])
-#y1 = multivariate_normal.pdf([1.0,0], mean=[0.40138394, 0.624545  ], cov=covs)
-#
-#covs = np.diag([0.04683658, 0.05457692])
-#y2 = multivariate_normal.pdf([0,1.0], mean=[0.39924768, 0.6262955 ], cov=covs)
-#
-#covs = np.diag([0.04706378, 0.0547159 ])
-#y3 = multivariate_normal.pdf([0.5,0], mean=[0.4035475 , 0.6227344 ], cov=covs)
-#
-#
-#'''
-#pdfs
-#Out[9]: array([0.00194932, 0.15971881, 0.08212371], dtype=float32)
-#
-#means
-#Out[10]: 
-#array([[0.40138394, 0.624545  ],
-#       [0.39924768, 0.6262955 ],
-#       [0.4035475 , 0.6227344 ]], dtype=float32)
-#
-#stds
-#Out[11]: 
-#array([[0.04695055, 0.05464467],
-#       [0.04683658, 0.05457692],
-#       [0.04706378, 0.0547159 ]], dtype=float32)
-#'''
-#
-#print(y1,y2,y3)
-#np.finfo(float).eps
-
-path_to_save = ""
+#-------------Save model ----------------------------------
+are_we_saving = False
+path_to_save = "some/path/to/somewhere"
+#----------------------------------------------------------
 with tf.Session() as sess:
     sess.run(agent.init)
     sess.graph.finalize()
@@ -778,6 +650,7 @@ with tf.Session() as sess:
                     stop = (mini_batch_step+1)*mini_batch_size
                     
                     if agent.is_action_continous:
+                        #FOR DEBUG
 #                       raw_critic_1,raw_critic_2,raw_delta,raw_critic,raw_actor,raw_tvars= sess.run([agent.output_critic_copy_1,agent.output_critic_copy_2,agent.new_delta,agent.output_critic,agent.pdf,agent.tvars],feed_dict = {agent.state_in:batch[start:stop,agent.index_s0[0]:agent.index_s0[1]]\
 #                                                                                                                     ,agent.state_in_future:batch[start:stop,agent.index_s1[0]:agent.index_s1[1]]\
 #                                                                                                                      ,agent.reward_placeholder:batch[start:stop,agent.index_r[0]]\
@@ -820,8 +693,9 @@ with tf.Session() as sess:
     
                     sess.run([agent.update_critic_copy_weights_1,agent.update_critic_copy_weights_2]) #Update copies weights
             count = count +1
-            
-#    agent.save_model(path_to_save,sess)            
+ 
+    if are_we_saving:           
+        agent.save_model(path_to_save,sess)            
             
 
 
