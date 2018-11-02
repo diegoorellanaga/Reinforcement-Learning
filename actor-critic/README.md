@@ -89,24 +89,28 @@ Set the following parameters as you may see fit. Then, run the code. If the opti
 ![title](images/nes.png)
 ![title](images/avgne.png)
 
-
-
 ### Plots 2
 
 ![title](images/single-episode-reward-plot-1-shuffle.png)
 ![title](images/avg-100-episode-reward-plot-1-shuffle.png)
-
-
 
 ### Plots 3
 
 ![title](images/lastsingle.png)
 ![title](images/lastavg.png)
 
+### Finally we update every step as the algorithm does.
+
+### Plots 4
+
+![title](images/singlestepsingle.png)
+![title](images/singlestepavg.png)
 
 
 
+# Conclusion
 
+Vanilla actor-critic works in theory, but in practice it requires a very thoughtful parameter tunning.
 
 
 
