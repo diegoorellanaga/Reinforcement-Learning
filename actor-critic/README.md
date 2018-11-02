@@ -84,21 +84,21 @@ Set the following parameters as you may see fit. Then, run the code. If the opti
 
 ## SOME PLOTS
 
-###Plots 1
+### Plots 1
 
 ![title](images/nes.png)
 ![title](images/avgne.png)
 
 
 
-###Plots 2
+### Plots 2
 
 ![title](images/single-episode-reward-plot-1-shuffle.png)
 ![title](images/avg-100-episode-reward-plot-1-shuffle.png)
 
 
 
-###Plots 3
+### Plots 3
 
 ![title](images/lastsingle.png)
 ![title](images/lastavg.png)
