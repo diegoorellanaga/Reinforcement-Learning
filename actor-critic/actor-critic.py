@@ -576,7 +576,7 @@ mini_batch_size = int(mini_batch_size)
 #----------------------------------------------------------
 
 #-------------plot arrays initialization-------------------
-num_episodes = 5000 # episodes
+num_episodes = 15000 # episodes
 plotlist = list(np.zeros(num_episodes)) #plot array
 plot_list_avg = list(np.zeros(int(num_episodes/100.0)))
 #----------------------------------------------------------
