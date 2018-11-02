@@ -49,7 +49,7 @@ critic neural network parameters:
 ## EXAMPLE
 
 
-Set the following parameters as you may see fit. Then run the code. The code will save the model parameters and show you two training plots. 
+Set the following parameters as you may see fit. Then, run the code. If the option was selected the script will save the model after the training is done, and show you two training plots. 
 
     #------------loops parameters------------------------------
     num_mem = 300 #amount of samples collected before training
@@ -80,6 +80,26 @@ Set the following parameters as you may see fit. Then run the code. The code wil
     are_we_saving = False
     path_to_save = "some/path/to/somewhere"
     #----------------------------------------------------------
+
+
+## SOME PLOTS
+
+###Plots 1
+![title](images/ne.png)
+![title](images/avgne.png)
+
+
+
+###Plots 2
+![title](images/single-100-episode-reward-plot-1-shuffle.png)
+![title](images/avg-100-episode-reward-plot-1-shuffle.png)
+
+
+
+###Plots 3
+![title](images/lastsingle.png)
+![title](images/lastavg.png)
+
 
 
 
