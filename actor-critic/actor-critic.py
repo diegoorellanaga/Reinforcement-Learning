@@ -374,11 +374,11 @@ class agent_episodic_continuous_action():
         self.critic_gradients = tf.gradients(self.critic,self.tvars[self.actor_tvar_num:self.actor_tvar_num+self.critic_tvar_num],name="gradienttwo")
   
     def new_update_actor_weights(self):
-        self.new_new_update_actor_weights_op = self.optimizer_actor.apply_gradients(grads_and_vars=zip(self.actor_gradients,self.tvars[:self.actor_tvar_num]))#,global_step=self.global_step_actor) 
+        self.new_new_update_actor_weights_op = self.optimizer_actor.apply_gradients(grads_and_vars=zip(self.actor_gradients,self.tvars[:self.actor_tvar_num]),global_step=self.global_step_actor)#,global_step=self.global_step_actor) 
             
 
     def new_update_critic_weights(self):
-        self.new_update_critic_weights_op = self.optimizer_critic.apply_gradients(grads_and_vars=zip(self.critic_gradients,self.tvars[self.actor_tvar_num:self.actor_tvar_num+self.critic_tvar_num]))#,global_step=self.global_step_critic)   
+        self.new_update_critic_weights_op = self.optimizer_critic.apply_gradients(grads_and_vars=zip(self.critic_gradients,self.tvars[self.actor_tvar_num:self.actor_tvar_num+self.critic_tvar_num]),global_step=self.global_step_critic)#,global_step=self.global_step_critic)   
 
     def update_critic_copies_weigths(self):
         self.update_critic_copy_weights_1 = list(np.zeros(self.critic_tvar_num))
@@ -651,14 +651,14 @@ seed = 0
 np.random.seed(seed)
 
 #------------loops parameters------------------------------
-num_mem = 1 #amount of samples collected before training
-ratio = 1   #we devide the shuffle memories in ratio number of sets whose size is "mini_batch_size"
+num_mem = 300 #amount of samples collected before training
+ratio = 30   #we devide the shuffle memories in ratio number of sets whose size is "mini_batch_size"
 mini_batch_size = num_mem/ratio ##mini_batch_size = num_mem / ratio must be integer
 mini_batch_size = int(mini_batch_size)
 #----------------------------------------------------------
 
 #-------------plot arrays initialization-------------------
-num_episodes = 10000*num_mem # episodes
+num_episodes = 15000 # episodes
 plotlist = list(np.zeros(num_episodes)) #plot array
 plot_list_avg = list(np.zeros(int(num_episodes/100.0)))
 #----------------------------------------------------------
@@ -666,12 +666,12 @@ plot_list_avg = list(np.zeros(int(num_episodes/100.0)))
 
 #-------------Agent instantiation -------------------------
 tf.reset_default_graph()
-agent= agent_episodic_continuous_action(gamma=1,s_size=4,a_size=2,action_type="continous",amount_of_data_to_memorize=num_mem,optimizer="GRAD")
+agent= agent_episodic_continuous_action(gamma=1,s_size=4,a_size=2,action_type="discrete",amount_of_data_to_memorize=num_mem,optimizer="GRAD")
 
 agent.create_actor_brain(hidd_layer=[8],hidd_act_fn="relu",output_act_fn="linear",mean=0.0,stddev=0.14)
 agent.create_critic_brain(hidd_layer=[8],hidd_act_fn="relu",output_act_fn="linear",mean=0.0,stddev=0.14)
-agent.set_actor_learning_rate_decay(optimizer="GRAD",type_of_decay="none",learning_rate = 0.001/1,decay_steps = 5000, decay_rate = 0.2)
-agent.set_critic_learning_rate_decay(optimizer="GRAD",type_of_decay="none",learning_rate = 0.001/1,decay_steps = 5000, decay_rate = 0.2)
+agent.set_actor_learning_rate_decay(optimizer="GRAD",type_of_decay="exponential",learning_rate = 0.001/1,decay_steps = 5000, decay_rate = 0.1)
+agent.set_critic_learning_rate_decay(optimizer="GRAD",type_of_decay="exponential",learning_rate = 0.001/1,decay_steps = 5000, decay_rate = 0.1)
 
 agent.create_new_graph_connections()
 #----------------------------------------------------------
@@ -745,7 +745,7 @@ with tf.Session() as sess:
         count_avg = count_avg + count
         count = 0
         if print_each_every(i,100,"Episode: {0} Average: {1}".format(i,count_avg/100.0)):
-            plot_list_avg[avg_counter] = count_avg  #we gather the avgs in order to plot them later  
+            plot_list_avg[avg_counter] = count_avg/100.0  #we gather the avgs in order to plot them later  
             avg_counter = avg_counter + 1 # we move to the next cell
             count_avg = 0 #we start the avg all over again
         while not d:
@@ -767,7 +767,7 @@ with tf.Session() as sess:
             print_each_every(count+1,200,"Reached step: {0}".format(200))
             if full_memory:
                 
-              #  agent.shuffle_memories()
+                agent.shuffle_memories()
                 batch = agent.get_memories()
                 agent.reset_memories() 
                 for mini_batch_step in range(ratio):
@@ -778,18 +778,18 @@ with tf.Session() as sess:
                     stop = (mini_batch_step+1)*mini_batch_size
                     
                     if agent.is_action_continous:
-                       raw_critic_1,raw_critic_2,raw_delta,raw_critic,raw_actor,raw_tvars= sess.run([agent.output_critic_copy_1,agent.output_critic_copy_2,agent.new_delta,agent.output_critic,agent.pdf,agent.tvars],feed_dict = {agent.state_in:batch[start:stop,agent.index_s0[0]:agent.index_s0[1]]\
-                                                                                                                     ,agent.state_in_future:batch[start:stop,agent.index_s1[0]:agent.index_s1[1]]\
-                                                                                                                      ,agent.reward_placeholder:batch[start:stop,agent.index_r[0]]\
-                                                                                                                      ,agent.action_placeholder:batch[start:stop,agent.index_a[0]:agent.index_a[1]]\
-                                                                                                                      ,agent.I_placeholder:batch[start:stop,agent.index_I[0]]\
-                                                                                                                      ,agent.d_placeholder:batch[start:stop,agent.index_d[0]]\
-                                                                                                                      ,agent.gamma_placeholder:batch[start:stop,agent.index_gamma[0]]\
-                                                                                                                      })
+#                       raw_critic_1,raw_critic_2,raw_delta,raw_critic,raw_actor,raw_tvars= sess.run([agent.output_critic_copy_1,agent.output_critic_copy_2,agent.new_delta,agent.output_critic,agent.pdf,agent.tvars],feed_dict = {agent.state_in:batch[start:stop,agent.index_s0[0]:agent.index_s0[1]]\
+#                                                                                                                     ,agent.state_in_future:batch[start:stop,agent.index_s1[0]:agent.index_s1[1]]\
+#                                                                                                                      ,agent.reward_placeholder:batch[start:stop,agent.index_r[0]]\
+#                                                                                                                      ,agent.action_placeholder:batch[start:stop,agent.index_a[0]:agent.index_a[1]]\
+#                                                                                                                      ,agent.I_placeholder:batch[start:stop,agent.index_I[0]]\
+#                                                                                                                      ,agent.d_placeholder:batch[start:stop,agent.index_d[0]]\
+#                                                                                                                      ,agent.gamma_placeholder:batch[start:stop,agent.index_gamma[0]]\
+#                                                                                                                      })
                         
                         
                         
-                       raise Exception("1 test") 
+                #       raise Exception("1 test") 
                         
                        delta,_,_= sess.run([agent.new_delta,agent.new_new_update_actor_weights_op,agent.new_update_critic_weights_op],feed_dict = {agent.state_in:batch[start:stop,agent.index_s0[0]:agent.index_s0[1]]\
                                                                                                                      ,agent.state_in_future:batch[start:stop,agent.index_s1[0]:agent.index_s1[1]]\
@@ -826,9 +826,11 @@ with tf.Session() as sess:
 
 
 plt.plot(plotlist,'bx')
+plt.ylabel("reward")
 plt.show()
 
 plt.plot(plot_list_avg,'kx')
+plt.ylabel("avg reward per 100 episodes")
 plt.show()    
 
     
