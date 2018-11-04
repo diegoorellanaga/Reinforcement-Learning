@@ -562,7 +562,7 @@ class agent_episodic_continuous_action():
 #env = gym.make('BipedalWalker-v2')
 env = gym.make('CartPole-v0')
 
-env.seed(0)
+#env.seed(0)
 #uper_action_limit = env.action_space.high
 #lower_action_limit = env.action_space.low
 uper_action_limit = np.array([10,10])
@@ -588,8 +588,8 @@ agent= agent_episodic_continuous_action(gamma=1,s_size=4,a_size=2,action_type="d
 
 agent.create_actor_brain(hidd_layer=[8],hidd_act_fn="relu",output_act_fn="linear",mean=0.0,stddev=0.01)
 agent.create_critic_brain(hidd_layer=[8],hidd_act_fn="relu",output_act_fn="linear",mean=0.0,stddev=0.01)
-agent.set_actor_learning_rate_decay(optimizer="GRAD",type_of_decay="exponential",learning_rate = 0.001,decay_steps = 5000, decay_rate = 0.1)
-agent.set_critic_learning_rate_decay(optimizer="GRAD",type_of_decay="exponential",learning_rate = 0.001,decay_steps = 5000, decay_rate = 0.1)
+agent.set_actor_learning_rate_decay(optimizer="GRAD",type_of_decay="exponential",learning_rate = 0.001,decay_steps = 10000, decay_rate = 0.1)
+agent.set_critic_learning_rate_decay(optimizer="GRAD",type_of_decay="exponential",learning_rate = 0.001,decay_steps = 10000, decay_rate = 0.1)
 
 agent.create_new_graph_connections()
 #----------------------------------------------------------
