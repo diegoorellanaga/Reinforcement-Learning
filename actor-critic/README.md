@@ -136,6 +136,14 @@ After a couple of runs, I have obtained the results seen below with the followin
 ![title](images/13s.png)
 ![title](images/13a.png)
 
+Finally with the same last parameters I have obtained convergence.
+
+### Plots 6
+
+![title](images/15s.png)
+![title](images/15a.png)
+
+
 # Conclusion
 
 Vanilla actor-critic works in theory, but in practice it requires a very thoughtful parameter tunning.
